@@ -1,71 +1,58 @@
-# Practical lesson pz-SOLID  
-# Практична реалізація SOLID принципів  
+#  Лабораторна: SOLID Refactoring
 
-> У цьому занятті студенти отримують практичні навички застосування SOLID принципів під час рефакторингу існуючого коду.  
-> Мета — створити гнучку, масштабовану та чисту архітектуру шляхом застосування SRP, OCP, LSP, ISP та DIP.
-
----
-
-## What need to do:
-* Провести аналіз вихідного «анти-SOLID» коду  
-* Визначити порушення кожного SOLID принципу  
-* Виконати рефакторинг згідно з:
-  * SRP — Single Responsibility Principle  
-  * OCP — Open/Closed Principle  
-  * LSP — Liskov Substitution Principle  
-  * ISP — Interface Segregation Principle  
-  * DIP — Dependency Inversion Principle  
-* Створити відповідні інтерфейси й абстракції  
-* Усунути зайві або циклічні залежності  
-* Додати мінімальний набір unit-тестів після рефакторингу  
+##  Про що лабораторна робота 
+Суть проста: був жахливий код, який робив усе підряд в одному класі. Моє завдання — розбити його на нормальні модулі, щоб це виглядало як професійна архітектура.
 
 ---
 
-## Acceptance criteria
-* Реалізація на мові Typescript 
-* Студент розуміє кожен SOLID принцип та пояснює його застосування  
-* Увесь вихідний код проаналізовано  
-* Усі порушення SOLID знайдено та описано  
-* Після рефакторингу:
-  * Кожен клас має одну відповідальність (SRP)  
-  * Код розширюється через нові класи, а не редагування існуючих (OCP)  
-  * Класи-нащадки повністю заміщають базові (LSP)  
-  * Інтерфейси невеликі й специфічні (ISP)  
-  * Залежності реалізовані через абстракції (DIP)  
-* Код структурований, логічний та зрозумілий  
-* Усі тести проходять успішно  
-* Звіт оформлений у Markdown (README.md)
+##  Що було не так (Anti-SOLID)
+У файлі `BadOrder.ts` був повний хаос:
+* **Клас-комбайн:** Він одночасно рахував гроші, писав логи в базу і відправляв пошту.
+* **Hardcode:** Знижки були прописані через `if/else`. Щоб додати нову, треба було лізти в робочий код і ламати його.
+* **Жодних тестів:** Таке неможливо протестувати, бо клас сам створював свої залежності.
 
-## Directory Structure
-```
-├── pz-SOLID
-│   ├── src
-│   │   ├── original          # код із навмисними порушеннями SOLID
-│   │   ├── refactored        # код після рефакторингу
-│   │   ├── interfaces        # абстракції та інтерфейси
-│   ├── tests
-│   │   ├── refactored.spec.js
-│   ├── .editorconfig
-│   ├── .gitignore
-│   ├── jest.config.js
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── README.md
-└──
-```
+---
 
-## Useful links
+##  Як я це виправив
+Я розкидав логіку по окремих файлах згідно з принципами SOLID:
 
-[SOLID Principles Explained](https://www.baeldung.com/solid-principles)
+1.  **SRP (Єдина відповідальність):**
+    * `OrderStorage` — тепер тупо зберігає дані.
+    * `EmailNotification` — суто шле листи.
+    * `OrderService` — просто керує процесом, як диригент.
 
-[SOLID: The First 5 Principles of Object-Oriented Design](https://www.freecodecamp.org/news/solid-principles-explained-in-plain-english/)
+2.  **OCP (Відкритість/Закритість):**
+    * Зробив інтерфейс `IDiscount`. Тепер, якщо треба додати знижку на Новий Рік, я створюю **окремий файл**, а старий код навіть не чіпаю.
 
-[JavaScript SOLID: Реалізація принципів](https://khalilstemmler.com/articles/solid-principles/)
+3.  **DIP (Інверсія залежностей):**
+    * Найголовніше: мій сервіс тепер не створює об'єкти через `new`. Він отримує їх готовими. Це дозволило легко підсунути йому тестові дані.
 
-[Clean Code Concepts Adapted for JavaScript](https://github.com/ryanmcdermott/clean-code-javascript)
+---
 
-[Dependency Injection in JavaScript](https://javascript.plainenglish.io/dependency-injection-in-javascript-1b82a8101c1a)
+##  Структура проєкту
+```text
+src/
+├── original/          # Той самий поганий код
+├── refactored/        # Вже виправлена версія
+│   ├── discounts.ts   # Логіка знижок
+│   ├── payments.ts    # Оплата
+│   ├── storage.ts     # База даних
+│   ├── notification.ts# Сповіщення
+│   └── OrderService.ts# Головний сервіс
+├── interfaces/        # Типи (контракти)
+└── tests/             # Перевірка
 
+✅ Результати виконання роботи
 
+Після рефакторингу система була перевірена за допомогою модульних тестів.
 
+PASS  tests/refactored.spec.ts
+ SOLID Order System
+   ✓ Без знижки — сума має бути 100 (30 ms)
+   ✓ VIP клієнт — знижка 20% (сума 80) (4 ms)
+   ✓ Новий клієнт — знижка 10% (сума 90) (5 ms)
 
+Test Suites: 1 passed, 1 total
+Tests:       3 passed, 3 total
+Snapshots:   0 total
+Time:        0.779 s
